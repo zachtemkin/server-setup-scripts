@@ -6,6 +6,9 @@ USER="zach"
 ADMIN_CONTACT="zachtemkin@gmail.com"
 SERVICES_DIRECTORY="/home/$USER/services"
 DOMAIN="zach.coffee"
+SECONDARY_DOMAIN="zachmade.app"
+SSL_CERT_FILE="/etc/letsencrypt/live/zach.coffee/fullchain.pem"
+SSL_KEY_FILE="/etc/letsencrypt/live/zach.coffee/privkey.pem"
 
 # Set up formatting for use later
 BOLD='\e[1m'
@@ -54,6 +57,7 @@ DEFAULT_DOMAIN_NAME="$SERVICE_ID.$DOMAIN"
 
 read -p "URL (Default: "${DEFAULT_DOMAIN_NAME}"): " DOMAIN_NAME
 DOMAIN_NAME=${DOMAIN_NAME:-$DEFAULT_DOMAIN_NAME}
+SECONDARY_DOMAIN_NAME="$SERVICE_ID.$SECONDARY_DOMAIN"
 
 echo " "
 
@@ -61,6 +65,7 @@ echo " "
 echo "Service Name: $SERVICE_NAME"
 echo "Service ID: $SERVICE_ID"
 echo "Domain: https://$DOMAIN_NAME"
+echo "Domain: https://$SECONDARY_DOMAIN_NAME"
 echo "GitHub Repo: github.com/$GITHUB_REPO"
 
 echo " "
@@ -276,15 +281,57 @@ if echo "<VirtualHost *:80>
     CustomLog /var/log/apache2/$DOMAIN_NAME-access.log combined
 </VirtualHost>
 
+<VirtualHost *:80>
+    ServerName $SECONDARY_DOMAIN_NAME
+    ServerAlias www.$SECONDARY_DOMAIN_NAME
+    ServerAdmin $ADMIN_CONTACT
+
+    # Redirect HTTP to HTTPS
+    Redirect permanent / https://$SECONDARY_DOMAIN_NAME/
+
+    ErrorLog /var/log/apache2/$DOMAIN_NAME-error.log
+    CustomLog /var/log/apache2/$DOMAIN_NAME-access.log combined
+</VirtualHost>
+
 <VirtualHost *:443>
     ServerName $DOMAIN_NAME
     ServerAlias www.$DOMAIN_NAME
     ServerAdmin $ADMIN_CONTACT
 
-    # SSL Configuration using Cloudflare Origin CA
+    # SSL Configuration using Let's Encrypt
     SSLEngine on
-    SSLCertificateFile /etc/ssl/cloudflare/zach.coffee.pem
-    SSLCertificateKeyFile /etc/ssl/cloudflare/zach.coffee.key
+    SSLCertificateFile $SSL_CERT_FILE
+    SSLCertificateKeyFile $SSL_KEY_FILE
+
+    # SSL Security Settings
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite ECDHE+AESGCM:ECDHE+AES256:ECDHE+AES128:!aNULL:!MD5:!DSS
+    SSLHonorCipherOrder on
+
+    # Proxy Configuration
+    ProxyRequests Off
+    ProxyPreserveHost On
+    ProxyVia Full
+    <Proxy *>
+        Require all granted
+    </Proxy>
+
+    ProxyPass / http://127.0.0.1:$PORT/
+    ProxyPassReverse / http://127.0.0.1:$PORT/
+
+    ErrorLog /var/log/apache2/$DOMAIN_NAME-ssl-error.log
+    CustomLog /var/log/apache2/$DOMAIN_NAME-ssl-access.log combined
+</VirtualHost>
+
+<VirtualHost *:443>
+    ServerName $SECONDARY_DOMAIN_NAME
+    ServerAlias www.$SECONDARY_DOMAIN_NAME
+    ServerAdmin $ADMIN_CONTACT
+
+    # SSL Configuration using Let's Encrypt
+    SSLEngine on
+    SSLCertificateFile $SSL_CERT_FILE
+    SSLCertificateKeyFile $SSL_KEY_FILE
 
     # SSL Security Settings
     SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
@@ -473,7 +520,7 @@ echo -e "\n------------------------------------"
 echo -e "--------------- ${BOLD}DONE${END_COLOR} ---------------"
 echo -e "------------------------------------ \n"
 echo -e "${BOLD}*** $SERVICE_ID is now set up! ***${END_COLOR}\n"
-echo -e "* Visit ${BOLD}https://$DOMAIN_NAME${END_COLOR} to see the new site"
+echo -e "* Visit ${BOLD}https://$DOMAIN_NAME${END_COLOR} or ${BOLD}https://$SECONDARY_DOMAIN_NAME${END_COLOR} to see the new site"
 echo -e "\n* Clone this repository and push to deploy: \n${BOLD}git clone git@github.com:$GITHUB_REPO.git${END_COLOR}"
 echo -e " "
 
