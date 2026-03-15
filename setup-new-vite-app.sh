@@ -51,6 +51,8 @@ DEFAULT_APP_ID=$(generate_app_id "$APP_NAME")
 read -p "App ID (Default: "${DEFAULT_APP_ID}"): " APP_ID
 APP_ID=${APP_ID:-$DEFAULT_APP_ID}
 GITHUB_REPO="$GITHUB_USER/$APP_ID"
+ZC_DOMAIN_NAME="$APP_ID.$ZC_DOMAIN"
+ZM_DOMAIN_NAME="$APP_ID.$ZM_DOMAIN"
 
 # Prompt for the domain name with the default value
 DEFAULT_DOMAIN_NAME="$APP_ID.$DOMAIN"
@@ -336,7 +338,7 @@ fi
 sudo touch /etc/apache2/sites-available/$DOMAIN_NAME.conf
 if echo "<VirtualHost *:80>
     ServerName $DOMAIN_NAME
-    ServerAlias www.$DOMAIN_NAME
+    ServerAlias www.$DOMAIN_NAME $ZC_DOMAIN_NAME $ZM_DOMAIN_NAME
     ServerAdmin $ADMIN_CONTACT
 
     # Redirect HTTP to HTTPS
@@ -360,7 +362,7 @@ if echo "<VirtualHost *:80>
 
 <VirtualHost *:443>
     ServerName $DOMAIN_NAME
-    ServerAlias www.$DOMAIN_NAME
+    ServerAlias www.$DOMAIN_NAME $ZC_DOMAIN_NAME $ZM_DOMAIN_NAME
     ServerAdmin $ADMIN_CONTACT
 
     # SSL Configuration using Let's Encrypt
