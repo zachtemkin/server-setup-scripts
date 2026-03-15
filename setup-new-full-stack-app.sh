@@ -114,8 +114,8 @@ trap 'kill $SUDO_KEEP_ALIVE_PID' EXIT
 
 echo -e "${BOLD_GREEN}SUCCESS${END_COLOR} Password correct"
 
-# Create root directory for app
-if sudo mkdir $APPS_DIRECTORY/$APP_ID; then
+# Create root directory for app (mkdir -p creates parent dirs like full-stack-apps/ if needed)
+if sudo mkdir -p $APPS_DIRECTORY/$APP_ID; then
     echo -e "${BOLD_GREEN}SUCCESS${END_COLOR} Created root directory at $APPS_DIRECTORY/$APP_ID"
 else
     echo -e "${BOLD_RED}FAILED${END_COLOR} Cannot create root directory at $APPS_DIRECTORY/$APP_ID"
