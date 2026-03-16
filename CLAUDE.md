@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-A collection of bash scripts for provisioning and managing web instances on a remote Linux server (`208.113.128.190` / `server.zach.coffee`). Two instance types are actively maintained: **Vite (React) apps** and **Express servers**. Legacy React (CRA) scripts still exist but Vite is the current standard.
+A collection of bash scripts for provisioning and managing web instances on a remote Linux server (`208.113.128.190` / `server.zach.coffee`). Three instance types are supported: **Vite (React) apps**, **Express servers**, and **Full Stack apps**.
 
 ## Script Inventory
 
@@ -17,9 +17,6 @@ A collection of bash scripts for provisioning and managing web instances on a re
 | `setup-new-express-server.sh` | Remote server | Scaffold and deploy a new Express server |
 | `restart-express-server.sh` | Remote server | Reinstall deps, optional build, pm2 restart, reload Apache |
 | `remove-express-server.sh` | Remote server | pm2 delete, disable Apache site, delete config and directory |
-| `setup-new-react-app.sh` | Remote server | Legacy CRA setup (prefer Vite for new projects) |
-| `rebuild-react-app.sh` | Remote server | Legacy CRA rebuild |
-| `remove-react-app.sh` | Remote server | Legacy CRA removal |
 
 ## Server Directory Layout
 
@@ -27,7 +24,6 @@ A collection of bash scripts for provisioning and managing web instances on a re
 /home/zach/
   vite-apps/<app-id>/       # Vite apps; Apache serves dist/
   services/<service-id>/    # Express servers; Apache proxies to pm2 process
-  react-apps/<app-id>/      # Legacy CRA apps; Apache serves build/
   scripts/                  # Where the setup scripts live on the server
 ```
 
